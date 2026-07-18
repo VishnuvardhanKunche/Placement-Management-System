@@ -81,10 +81,48 @@ async function deleteStudent(req, res) {
     }
 }
 
+async function verifyStudent(req, res) {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const coordinatorId = req.user.id;
+        const result = await studentService.verifyStudent(id, coordinatorId);
+        res.status(200).json({
+            message: "Student verified successfully",
+            student: result,
+        });
+    } catch (error) {
+        console.error("Error in verifyStudent:", error);
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
+            message: error.statusCode ? error.message : "Internal server error",
+        });
+    }
+}
+
+async function unverifyStudent(req, res) {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const coordinatorId = req.user.id;
+        const result = await studentService.unverifyStudent(id, coordinatorId);
+        res.status(200).json({
+            message: "Student unverified successfully",
+            student: result,
+        });
+    } catch (error) {
+        console.error("Error in unverifyStudent:", error);
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
+            message: error.statusCode ? error.message : "Internal server error",
+        });
+    }
+}
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     updateStudent,
     deleteStudent,
+    verifyStudent,
+    unverifyStudent,
 };

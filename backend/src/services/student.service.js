@@ -194,10 +194,68 @@ async function deleteStudent(id, coordinatorId) {
     return await userModel.deleteUser(id);
 }
 
+async function verifyStudent(studentId, coordinatorId) {
+    const departmentId = await getCoordinatorDepartment(coordinatorId);
+
+    // 1. Check if student exists
+    const student = await studentModel.getStudentById(studentId);
+    if (!student) {
+        const error = new Error("Student not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    // 2. Enforce coordinator department isolation check
+    if (student.department_id !== departmentId) {
+        const error = new Error("Access denied. Student does not belong to your department.");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    // 3. Prevent duplicate verification
+    if (student.is_verified) {
+        const error = new Error("Student is already verified");
+        error.statusCode = 409;
+        throw error;
+    }
+
+    return await studentModel.verifyStudent(studentId, coordinatorId);
+}
+
+async function unverifyStudent(studentId, coordinatorId) {
+    const departmentId = await getCoordinatorDepartment(coordinatorId);
+
+    // 1. Check if student exists
+    const student = await studentModel.getStudentById(studentId);
+    if (!student) {
+        const error = new Error("Student not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    // 2. Enforce coordinator department isolation check
+    if (student.department_id !== departmentId) {
+        const error = new Error("Access denied. Student does not belong to your department.");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    // 3. Prevent duplicate unverification
+    if (!student.is_verified) {
+        const error = new Error("Student is already unverified");
+        error.statusCode = 409;
+        throw error;
+    }
+
+    return await studentModel.unverifyStudent(studentId);
+}
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     updateStudent,
     deleteStudent,
+    verifyStudent,
+    unverifyStudent,
 };

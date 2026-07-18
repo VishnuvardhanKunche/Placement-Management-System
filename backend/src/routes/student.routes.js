@@ -18,5 +18,7 @@ router.get("/", studentController.getAllStudents);
 router.get("/:id", validateStudentId, studentController.getStudentById);
 router.put("/:id", validateStudentId, validateUpdateInput, studentController.updateStudent);
 router.delete("/:id", validateStudentId, studentController.deleteStudent);
+router.patch("/:id/verify", validateStudentId, studentController.verifyStudent);
+router.patch("/:id/unverify", validateStudentId, studentController.unverifyStudent);
 
 module.exports = router;

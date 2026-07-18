@@ -89,10 +89,34 @@ async function updateStudentProfile(
     return result.rows[0];
 }
 
+async function verifyStudent(studentId, coordinatorId) {
+    const result = await pool.query(
+        `UPDATE students
+         SET is_verified = TRUE, verified_by_coordinator_id = $2, updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = $1
+         RETURNING *`,
+        [studentId, coordinatorId]
+    );
+    return result.rows[0];
+}
+
+async function unverifyStudent(studentId) {
+    const result = await pool.query(
+        `UPDATE students
+         SET is_verified = FALSE, verified_by_coordinator_id = NULL, updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = $1
+         RETURNING *`,
+        [studentId]
+    );
+    return result.rows[0];
+}
+
 module.exports = {
     createStudentProfile,
     getStudentByRollNumber,
     getStudentsByDepartment,
     getStudentById,
     updateStudentProfile,
+    verifyStudent,
+    unverifyStudent,
 };
