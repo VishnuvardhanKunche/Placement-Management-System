@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 
 const app = express();
 
@@ -11,8 +12,10 @@ const driveRoutes = require("./routes/drive.routes");
 const applicationRoutes = require("./routes/application.routes");
 const offerRoutes = require("./routes/offer.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
+const resumeRoutes = require("./routes/resume.routes");
 
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/api/departments", departmentRoutes);
 app.use("/api/auth", authRoutes);
@@ -23,5 +26,6 @@ app.use("/api/drives", driveRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/resume", resumeRoutes);
 
 module.exports = app;
