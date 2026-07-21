@@ -54,13 +54,14 @@ async function notifyUsersByRole(
 // Reusable safe helper to notify eligible students when a placement drive is published
 async function notifyEligibleStudentsForDrive(driveId, title, companyName, eligibleDepartmentIds = []) {
     try {
-        let query = `SELECT user_id FROM students WHERE is_verified = TRUE`;
+        let query = `SELECT s.user_id, s.full_name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE s.is_verified = TRUE`;
         let params = [];
         if (eligibleDepartmentIds && eligibleDepartmentIds.length > 0) {
-            query += ` AND department_id = ANY($1::int[])`;
+            query += ` AND s.department_id = ANY($1::int[])`;
             params.push(eligibleDepartmentIds);
         }
         const result = await pool.query(query, params);
+        const emailService = require("./email.service");
         for (const row of result.rows) {
             await createNotification(
                 row.user_id,
@@ -70,6 +71,17 @@ async function notifyEligibleStudentsForDrive(driveId, title, companyName, eligi
                 "drive",
                 driveId
             );
+
+            // Send Drive Published Email
+            try {
+                await emailService.sendDrivePublishedEmail(row.email, {
+                    name: row.full_name,
+                    driveTitle: title,
+                    companyName: companyName,
+                });
+            } catch (err) {
+                console.error("Email Error:", err.message);
+            }
         }
     } catch (error) {
         console.error("[Notification Trigger Error] Failed to notify eligible students for drive:", error);

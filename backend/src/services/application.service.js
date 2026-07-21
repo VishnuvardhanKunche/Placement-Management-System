@@ -97,6 +97,18 @@ async function applyForDrive(studentId, driveId) {
         application.id
     );
 
+    // Send Application Submitted Email to applicant
+    const emailService = require("./email.service");
+    try {
+        await emailService.sendApplicationSubmittedEmail(student.email, {
+            name: student.full_name,
+            driveTitle: drive.title,
+            companyName: drive.company_name,
+        });
+    } catch (err) {
+        console.error("Email Error:", err.message);
+    }
+
     return await applicationModel.getApplicationById(application.id);
 }
 
@@ -171,7 +183,29 @@ async function updateApplicationStatus(applicationId, status, feedback) {
     }
 
     await applicationModel.updateApplicationStatus(applicationId, status, feedback);
-    return await applicationModel.getApplicationById(applicationId);
+    const updatedApplication = await applicationModel.getApplicationById(applicationId);
+
+    // Trigger status update emails
+    const emailService = require("./email.service");
+    try {
+        const emailData = {
+            name: updatedApplication.student_name,
+            driveTitle: updatedApplication.drive_title,
+            companyName: updatedApplication.company_name,
+        };
+
+        if (status === "shortlisted") {
+            await emailService.sendApplicationShortlistedEmail(updatedApplication.student_email, emailData);
+        } else if (status === "selected") {
+            await emailService.sendApplicationSelectedEmail(updatedApplication.student_email, emailData);
+        } else if (status === "rejected") {
+            await emailService.sendApplicationRejectedEmail(updatedApplication.student_email, emailData);
+        }
+    } catch (err) {
+        console.error("Email Error:", err.message);
+    }
+
+    return updatedApplication;
 }
 
 module.exports = {

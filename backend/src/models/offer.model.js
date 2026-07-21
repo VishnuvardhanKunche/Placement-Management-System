@@ -27,7 +27,7 @@ async function getOfferById(offerId) {
                 u.email AS student_email,
                 d.code AS department_code, d.name AS department_name,
                 pd.title AS drive_title, pd.job_role,
-                c.name AS company_name,
+                c.name AS company_name, c.contact_email AS company_email, uc.email AS company_account_email,
                 po.full_name AS officer_name
          FROM offers o
          JOIN applications a ON o.application_id = a.id
@@ -36,6 +36,7 @@ async function getOfferById(offerId) {
          JOIN departments d ON s.department_id = d.id
          JOIN placement_drives pd ON a.drive_id = pd.id
          JOIN companies c ON pd.company_id = c.user_id
+         JOIN users uc ON c.user_id = uc.id
          LEFT JOIN placement_officers po ON o.created_by_officer_id = po.user_id
          WHERE o.id = $1`,
         [offerId]

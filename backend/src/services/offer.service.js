@@ -51,6 +51,20 @@ async function createOffer(data, officerId) {
         createdOffer.id
     );
 
+    // Send Offer Received Email to student
+    const emailService = require("./email.service");
+    try {
+        await emailService.sendOfferReceivedEmail(createdOffer.student_email, {
+            name: createdOffer.student_name,
+            driveTitle: createdOffer.drive_title,
+            companyName: createdOffer.company_name,
+            salary: createdOffer.salary_offered_lpa,
+            joiningDate: createdOffer.joining_date,
+        });
+    } catch (err) {
+        console.error("Email Error:", err.message);
+    }
+
     return createdOffer;
 }
 
@@ -143,6 +157,22 @@ async function acceptOffer(offerId, studentId) {
         "offer",
         updatedOffer.id
     );
+
+    // Send Offer Accepted Email to Company
+    const emailService = require("./email.service");
+    try {
+        const companyEmail = updatedOffer.company_email || updatedOffer.company_account_email;
+        if (companyEmail) {
+            await emailService.sendOfferAcceptedEmail(companyEmail, {
+                officerName: updatedOffer.officer_name,
+                studentName: updatedOffer.student_name,
+                driveTitle: updatedOffer.drive_title,
+                salary: updatedOffer.salary_offered_lpa,
+            });
+        }
+    } catch (err) {
+        console.error("Email Error:", err.message);
+    }
 
     return updatedOffer;
 }

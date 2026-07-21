@@ -32,7 +32,23 @@ async function approveCompany(companyId, officerId) {
         throw error;
     }
 
-    return await companyModel.approveCompany(companyId, officerId);
+    const approvedCompany = await companyModel.approveCompany(companyId, officerId);
+
+    // Send Company Approved Email
+    const emailService = require("./email.service");
+    try {
+        const recipientEmail = company.contact_email || company.account_email;
+        if (recipientEmail) {
+            await emailService.sendCompanyApprovedEmail(recipientEmail, {
+                companyName: company.name,
+                contactPerson: company.contact_person,
+            });
+        }
+    } catch (err) {
+        console.error("Email Error:", err.message);
+    }
+
+    return approvedCompany;
 }
 
 async function rejectCompany(companyId) {

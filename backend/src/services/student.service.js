@@ -3,6 +3,7 @@ const pool = require("../config/db");
 const userModel = require("../models/user.model");
 const studentModel = require("../models/student.model");
 const coordinatorModel = require("../models/coordinator.model");
+const emailService = require("./email.service");
 
 async function getCoordinatorDepartment(coordinatorId) {
     const coordinator = await coordinatorModel.getCoordinatorById(coordinatorId);
@@ -58,6 +59,11 @@ async function createStudent(data, coordinatorId) {
         );
 
         await client.query("COMMIT");
+
+        await emailService.sendWelcomeEmail(user.email, {
+            studentName: profile.full_name,
+            rollNumber: profile.roll_number,
+        });
 
         return {
             user_id: user.id,
@@ -231,6 +237,15 @@ async function verifyStudent(studentId, coordinatorId) {
         "student",
         studentId
     );
+
+    // Send Verification Email
+    try {
+        await emailService.sendVerificationEmail(student.email, {
+            name: student.full_name,
+        });
+    } catch (err) {
+        console.error("Email Error:", err.message);
+    }
 
     return verifiedStudent;
 }
